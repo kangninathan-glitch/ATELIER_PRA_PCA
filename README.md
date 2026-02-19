@@ -229,29 +229,29 @@ Difficulté : Moyenne (~45 minutes)
 Faites preuve de pédagogie et soyez clair dans vos explications et procedures de travail.  
 
 **Exercice 1 :**  
-Quels sont les composants dont la perte entraîne une perte de données ?  
-  
-*..Répondez à cet exercice ici..*
+Quels sont les composants dont la perte entraîne une perte de données ? 
+
+  - Le pod Flask n'entraîne pas de perte de données : il ne contient rien d’important.
 
 **Exercice 2 :**  
 Expliquez nous pourquoi nous n'avons pas perdu les données lors de la supression du PVC pra-data  
   
-*..Répondez à cet exercice ici..*
+  - Nous n'avons pas perdu les données parce que des sauvegardes automatiques étaient faites toutes les minutes et lorsque nous avons supprimé pra-data, nous avons utilisé une procédure de restauration
 
 **Exercice 3 :**  
 Quels sont les RTO et RPO de cette solution ?  
   
-*..Répondez à cet exercice ici..*
+  - Le RTO est de quelques minutes car la restauration prend peu de temps, et le RPO est d'une minute car les sauvegardes sont effectuées chaque minute.
 
 **Exercice 4 :**  
 Pourquoi cette solution (cet atelier) ne peux pas être utilisé dans un vrai environnement de production ? Que manque-t-il ?   
   
-*..Répondez à cet exercice ici..*
-  
+  - Cette solution ne peut pas être utilisée en production car SQLite et le stockage local ne sont pas adaptés à un environnement fiable et scalable, et il manque une base robuste, un stockage résilient et une restauration automatisée.
+
 **Exercice 5 :**  
 Proposez une archtecture plus robuste.   
   
-*..Répondez à cet exercice ici..*
+  - Une architecture plus robuste utiliserait une vraie base de données, un stockage fiable, des sauvegardes hors du cluster et plusieurs serveurs Kubernetes pour que l’application continue de fonctionner même si un nœud tombe.
 
 ---------------------------------------------------
 Séquence 6 : Ateliers  
