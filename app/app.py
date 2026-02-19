@@ -46,14 +46,16 @@ def count():
 
 @app.get("/status")
 def status():
-    # Count events
-    conn = get_conn()
-    cur = conn.execute("SELECT COUNT(*) FROM events")
-    count = cur.fetchone()[0]
+    # COUNT messages
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM events")
+    count = cursor.fetchone()[0]
     conn.close()
 
-    # Backup info
+    # BACKUP info
     backup_path = "/backup"
+
     last_backup_file = None
     backup_age_seconds = None
 
