@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import time
 from datetime import datetime
 from flask import Flask, jsonify, request
 
@@ -9,8 +10,7 @@ app = Flask(__name__)
 
 # ---------- DB helpers ----------
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    return conn
+    return sqlite3.connect(DB_PATH)
 
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -32,86 +32,38 @@ def hello():
     init_db()
     return jsonify(status="Bonjour tout le monde !")
 
-
 @app.get("/health")
 def health():
-    init_db()
     return jsonify(status="ok")
-
-@app.get("/add")
-def add():
-    init_db()
-
-    msg = request.args.get("message", "hello")
-    ts = datetime.utcnow().isoformat() + "Z"
-
-    conn = get_conn()
-    conn.execute(
-        "INSERT INTO events (ts, message) VALUES (?, ?)",
-        (ts, msg)
-    )
-    conn.commit()
-    conn.close()
-
-    return jsonify(
-        status="added",
-        timestamp=ts,
-        message=msg
-    )
-
-@app.get("/consultation")
-def consultation():
-    init_db()
-
-    conn = get_conn()
-    cur = conn.execute(
-        "SELECT id, ts, message FROM events ORDER BY id DESC LIMIT 50"
-    )
-
-    rows = [
-        {"id": r[0], "timestamp": r[1], "message": r[2]}
-        for r in cur.fetchall()
-    ]
-
-    conn.close()
-
-    return jsonify(rows)
 
 @app.get("/count")
 def count():
-    init_db()
-
     conn = get_conn()
     cur = conn.execute("SELECT COUNT(*) FROM events")
     n = cur.fetchone()[0]
     conn.close()
-
     return jsonify(count=n)
 
-@app.route('/status')
+@app.get("/status")
 def status():
-    # COUNT des messages
-    conn = sqlite3.connect('/data/database.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM messages")
-    count = cursor.fetchone()[0]
+    # Count events
+    conn = get_conn()
+    cur = conn.execute("SELECT COUNT(*) FROM events")
+    count = cur.fetchone()[0]
     conn.close()
 
-    # Dernier fichier de backup
-    backup_path = '/backup'
-    backup_files = sorted(
-        [f for f in os.listdir(backup_path)],
-        reverse=True
-    )
-    last_backup_file = backup_files[0] if backup_files else None
+    # Backup info
+    backup_path = "/backup"
+    last_backup_file = None
+    backup_age_seconds = None
 
-    # Âge du dernier backup
-    if last_backup_file:
-        full_path = os.path.join(backup_path, last_backup_file)
-        backup_time = os.path.getmtime(full_path)
-        backup_age_seconds = int(time.time() - backup_time)
-    else:
-        backup_age_seconds = None
+    if os.path.exists(backup_path):
+        files = sorted(os.listdir(backup_path), reverse=True)
+        if files:
+            last_backup_file = files[0]
+            full_path = os.path.join(backup_path, last_backup_file)
+            backup_time = os.path.getmtime(full_path)
+            backup_age_seconds = int(time.time() - backup_time)
 
     return jsonify({
         "count": count,
@@ -119,7 +71,6 @@ def status():
         "backup_age_seconds": backup_age_seconds
     })
 
-# ---------- Main ----------
+
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=8080)
